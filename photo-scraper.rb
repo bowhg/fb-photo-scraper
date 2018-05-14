@@ -1,23 +1,25 @@
 require 'koala'
 require 'open-uri'
 
-access_token = "EAACEdEose0cBADZCidClkVhsckp8k0bPtlp6W3EsLf4HND7ApTfWZCjDCfXPHXBVgmiLl7MtGLLnMZCHd3nx5k98QZCR3C1ufhclJ9HXivFU99ZC2xYWds4ZCdliHTwL9P17aWwcF9uUdg819sZCMlSH0JY7SBQZBZATJmXFkgmcX58x0ZBOgZAm5oZCCvfkgLeuIssZD"
+access_token = "access-token"
 
 
 @fb = Koala::Facebook::API.new(access_token)
 
-albums = @fb.get_connections("medium","albums")
+albums = @fb.get_connections("me","albums")
 albums.each do |album|
   album_name = album["name"]
-  images = @fb.get_object("#{album["id"]}?fields=photos{picture,images}")
-  count = images["photos"]["data"].count
+  images = fb.get_connection(album["id"],"photos",fields: "images",limit: 100)
   c = 1
-  images["photos"]["data"].each do |image|
-    url = image["images"].first["source"]
-    download = open(url)
-    IO.copy_stream(download, "./photo/#{album_name}-#{c}.jpg")
-    puts "Album #{album_name} #{c} out of #{count} downloaded"
-    c = c+1
+  until images.nil?
+    images.each do |image|
+      url = image["images"].first["source"]
+      download = open(url)
+      IO.copy_stream(download, "./photo/#{album_name}-#{c}.jpg")
+      puts "Album #{album_name} #{c} downloaded"
+      c = c+1
+    end
+    images = images.next_page
   end
   puts "Album #{album_name} finished"
 end
